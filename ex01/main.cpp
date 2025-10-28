@@ -6,18 +6,20 @@
 /*   By: tobourge <tobourge@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 09:21:05 by tobourge          #+#    #+#             */
-/*   Updated: 2025/10/27 16:08:51 by tobourge         ###   ########.fr       */
+/*   Updated: 2025/10/28 13:11:26 by tobourge         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RPN.cpp"
 #include "RPN.hpp"
 #include <iostream>
+#include <sstream>
 #include <stack>
 #include <cctype>
 #include <cstdlib>
 #include <string>
 #include <cstring>
+#include <vector>
 
 bool isOperator(char c)
 {
@@ -25,7 +27,7 @@ bool isOperator(char c)
         return true;
     return false;
 }
-void    doOperation(std::stack<int> &args, std::string op)
+void    doOperation(std::stack<int> &args, char op)
 {
     int arg2 = args.top();
     args.pop();
@@ -33,15 +35,14 @@ void    doOperation(std::stack<int> &args, std::string op)
     int arg1 = args.top();
     args.pop();
 
-
     int result;
-    if (op[0] == '+')
+    if (op == '+')
         result = arg1 + arg2;
-    else if (op[0] == '-')
+    else if (op == '-')
         result = arg1 - arg2;
-    else if (op[0] == '*')
+    else if (op == '*')
         result = arg1 * arg2;
-    else if (op[0] == '/')
+    else if (op == '/')
     {
         if (arg2 == 0)
             throw DivisionByZeroException();
@@ -50,47 +51,53 @@ void    doOperation(std::stack<int> &args, std::string op)
     args.push(result);
 }
 
-void    doCalc(char **argv)
+void    doCalc(std::string input)
 {
     std::stack<int> args;
 
-    args.push(atoi(argv[1]));
-    args.push(atoi(argv[2]));
+    args.push(input[0] - '0');
+    args.push(input[2] - '0');
 
-    int i = 3;
-    while (argv[i] != NULL)
+    int i = 4;
+    while (input[i] != '\0')
     {
-        if (std::isdigit(argv[i][0]))
-            args.push(atoi(argv[i]));
-        else if (isOperator(argv[i][0]))
-            doOperation(args, argv[i]);
+        if (std::isdigit(input[i]))
+            args.push(input[i] - 48);
+        else if (isOperator(input[i]))
+            doOperation(args, input[i]);
         i++;
-        std::cout << "Top : " << args.top() << std::endl;
-        std::cout << "Size : " << args.size() << std::endl;
-
     }
     std::cout << args.top() << std::endl;
 }
 
 
-void    ftParseArgs(char **argv)
+void    ftParseArgs(std::string arg)
 {
     int numbers = 2;
     int operators = 0;
     
-    for (int i = 1; i < 3; i++)
+    
+    if (arg.size() < 5)
+        throw WrongInputException();
+    int i = 0;
+    for (; i < 4; i++)
     {
-        if (std::strlen(argv[i]) != 1 || !std::isdigit(argv[i][0]))
+        if (i % 2 == 0 && !std::isdigit(arg[i]))
+            throw WrongInputException();
+        if (i % 2 == 1 && arg[i] != ' ')
             throw WrongInputException();
     }
-    int i = 3;
-    while (argv[i] != NULL)
+    
+    while (arg[i] != '\0')
     {
-        if (std::strlen(argv[i]) != 1 || (!std::isdigit(argv[i][0]) && !isOperator(argv[i][0])))    
+        if (i % 2 == 1 && (arg[i] != ' ' || (arg[i] == ' ' && arg[i + 1] == '\0')))
             throw WrongInputException();
-        else if (std::isdigit(argv[i][0]))
+        if (i % 2 == 0 && !std::isdigit(arg[i]) && !isOperator(arg[i]))
+            throw WrongInputException();
+        
+        if (std::isdigit(arg[i]))
             numbers += 1;
-        else if (isOperator(argv[i][0]))
+        if (isOperator(arg[i]))
         {
             operators += 1;
             if (operators >= numbers)
@@ -104,19 +111,20 @@ void    ftParseArgs(char **argv)
 
 int main(int argc, char** argv)
 {
-
-    if (argc < 3)
+    if (argc != 2)
     {
-        std::cerr << "Error : Please enter a valid RPN mathematical expression." << std::endl;
-        return (1);
+        std::cerr << "Error : Missing argument." << std::endl;
+        return 1;
     }
     try
     {
-        ftParseArgs(argv);
-        doCalc(argv);
+        ftParseArgs(argv[1]);
+        doCalc(argv[1]);
     }
     catch (std::exception &err)
     {
         std::cerr << err.what() << std::endl;
+        return 1;
     }
+    return 0;
 }
