@@ -6,82 +6,98 @@
 /*   By: tobourge <tobourge@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 13:16:04 by tobourge          #+#    #+#             */
-/*   Updated: 2025/10/28 16:28:48 by tobourge         ###   ########.fr       */
+/*   Updated: 2025/10/29 12:36:26 by tobourge         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "BitcoinExchange.hpp"
 #include <map>
 
-bool    isFile(std::string filename)
+typedef std::map<std::string, int> map_t;
+
+
+bool    isEmpty(std::string line)
 {
-    if (filename.size() < 3)
-        return false;
-    if (*filename.begin() == '.' || *filename.end() - 1 == '.')
-        return false;
-    
     int i = 0;
-    int dots = 0;
-    while (filename[i])
+    while (line[i])
     {
-        if (std::isblank(filename[i]))
+        if (!std::isblank(line[i]))
             return false;
-        if (filename[i] == '.')
-            dots = 1;
         i++;
     }
-    if (dots == 0)
-        return false;
     return true;
 }
 
-bool    parseDate(std::string date)
+// bool    parseDate(std::string &date)
+// {
+//     int i = 0;
+    
+//     for(; i < 4; i++)
+//     {
+//         if (!std::isdigit(date[i]))
+//             throw InvalidDateException();
+//     }
+//     if (date[i] != '-')
+//         throw InvalidDateException();
+//     int year = stoi(date.substr(0, 4));
+// }
+
+// bool    parseValue(std::string &date)
+// {
+
+// }
+
+map_t   &createMapElement(map_t map, std::string date, std::string value)
 {
-
-}
-
-bool    parseValue(std::string date)
-{
-
-}
-
-void    parseLine(std::string &line, std::map<std::string,int> &map)
-{
-    int i = 0;
-
-    while (line[i] && line[i] != '|')
-        i++;
-    if (i != 11 || line[i] != '|')
-        throw WrongFileException();
-    else
+    if (date == "")
+        map[""] = NULL;
+    else if (value == "" || isEmpty(value))
+        map[date] = NULL;
+    else if (value[0] != ' ' || value.size() < 2)
+        map["W" + value] = NULL;
+    // for (int i = 1; i < value.size() - 1; i++)
+    // {
+    //     if (!std::isdigit(value[i]))
+    //         map["W" + value] = NULL;
+    // }
+    try 
     {
-        std::string date = line.substr(0, 10);
-        std::string value = line.substr(12, std::string::npos);
-        if (parseDate(date) && parseValue(value))
-            map[date]; // = atoi de value;
+        int n = stoi(value.substr(1));
+        map[date] = n;
+    }
+    catch (std:: exception &err) 
+    {
+        map["W" + value] = NULL;
     }
 }
 
-void    analyseFile(std::string filename)
+
+map_t    &analyseFile(std::string filename)
 {
     std::ifstream    file(filename.c_str());
     if (!file)
         throw CantOpenFileException();
 
     std::string line;
+    map_t       map;
 
-    getline(file, line);
-    if (line != "date | value")
-        throw WrongFileException();
-    
-    std::map<std::string, int>   map;
     while (getline(file, line))
     {
-        if (line == "")
+        if (line == "" || isEmpty(line))
             throw WrongFileException();
-        parseLine(line, map);
+        int i = 0;
+        while (line[i] && line[i] != '|')
+            i++;
+        if (line[i] != '|')
+            map["W" + line] = NULL;
+        else
+        {
+            std::string date = line.substr(0, i);
+            std::string value = line.substr(i + 1);
+            createMapElement(map, date, value);
+        }
     }
-    //convert btc exchange
+    return map;
 }
 
 //------------------------------------------------------------EXCEPTIONS
@@ -92,5 +108,9 @@ const char* CantOpenFileException::what() const throw()
 }
 const char* WrongFileException::what() const throw()
 {
-    return "Error : Wrong File passed as argument";
+    return "Error : Empty line in file";
+}
+const char* InvalidDateException::what() const throw()
+{
+    return "Error : Invalid Date found ni file";
 }
