@@ -6,7 +6,7 @@
 /*   By: tobourge <tobourge@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 13:24:38 by tobourge          #+#    #+#             */
-/*   Updated: 2025/10/29 12:36:27 by tobourge         ###   ########.fr       */
+/*   Updated: 2025/10/29 19:25:23 by tobourge         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,17 +19,32 @@ On crée une map qui contient date | value
 Le programme doit aller chercher le taux de la date demandée (jour le plus proche)
 dans la database et convertir la valeur
 
-Q : comment garder l'ordre des input alors que map classe automatiquement dans l'ordre croissant ?
-Q : Dois-t-on parser les '/' dans le nom de fichier ?
-Q : Est-ce une bonne pratique de faire un try general dans le main ?
-Q : Comment faire quand dans la meme fonction on a un throw et un return a faire ?
-
-MEMO map :
-- [W + ...] --> Error : Bad input [...]
-- [""] = xxx --> Error : Empty date
-- [date] = NULL --> Error : Empty value
-
 */
+
+
+
+
+
+int   createDatabase(map_t &datamap)
+{
+    std::ifstream   data("data.csv");    
+
+    if(!data.is_open())
+    {
+        std::cerr << "Error : database opening failed." << std::endl;
+        return (-1);
+    }
+    
+    std::string line;
+    while (std::getline(data, line))
+    {
+        std::size_t     i = line.find(',');
+        std::string     date = line.substr(0, i);
+        std::string     value = line.substr(i + 1);
+        datamap[date] = std::strtol(value.c_str(), NULL, 10);
+    }
+    return 0;
+}
 
 bool    isFile(std::string filename)
 {
@@ -42,7 +57,7 @@ bool    isFile(std::string filename)
     int dots = 0;
     while (filename[i])
     {
-        if (std::isblank(filename[i]))
+        if (isblank(filename[i]))
             return false;
         if (filename[i] == '.')
             dots = 1;
@@ -55,24 +70,26 @@ bool    isFile(std::string filename)
 
 int main(int argc, char **argv)
 {
+    (void)argv;
     if (argc != 2)
     {
         std::cout << "Error : This program takes one file as argument.";
         return 1;
     }
+    map_t   datamap;   
+    if (createDatabase(datamap) == -1)
+        return 1;
     if (isFile(argv[1]))
     {
-        std::map<std::string,int>   map;
         try
         {
-            map = analyseFile(argv[1]);
-            //convertBtc
+            analyseFile(argv[1], datamap);
         }
         catch(std::exception &err)
         {
             std::cerr << err.what() << std::endl;
             return 1;
         }
-        
     }
+    return 0;
 }

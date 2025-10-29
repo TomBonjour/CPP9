@@ -6,12 +6,11 @@
 /*   By: tobourge <tobourge@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 13:16:04 by tobourge          #+#    #+#             */
-/*   Updated: 2025/10/29 12:36:26 by tobourge         ###   ########.fr       */
+/*   Updated: 2025/10/29 19:25:24 by tobourge         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "BitcoinExchange.hpp"
-#include <map>
 
 typedef std::map<std::string, int> map_t;
 
@@ -21,83 +20,147 @@ bool    isEmpty(std::string line)
     int i = 0;
     while (line[i])
     {
-        if (!std::isblank(line[i]))
+        if (!isblank(line[i]))
             return false;
         i++;
     }
     return true;
 }
 
-// bool    parseDate(std::string &date)
-// {
-//     int i = 0;
-    
-//     for(; i < 4; i++)
-//     {
-//         if (!std::isdigit(date[i]))
-//             throw InvalidDateException();
-//     }
-//     if (date[i] != '-')
-//         throw InvalidDateException();
-//     int year = stoi(date.substr(0, 4));
-// }
-
-// bool    parseValue(std::string &date)
-// {
-
-// }
-
-map_t   &createMapElement(map_t map, std::string date, std::string value)
+bool    parseYear(int year, int month, int day)
 {
-    if (date == "")
-        map[""] = NULL;
-    else if (value == "" || isEmpty(value))
-        map[date] = NULL;
-    else if (value[0] != ' ' || value.size() < 2)
-        map["W" + value] = NULL;
-    // for (int i = 1; i < value.size() - 1; i++)
-    // {
-    //     if (!std::isdigit(value[i]))
-    //         map["W" + value] = NULL;
-    // }
-    try 
+    if (year < 2009 || year > 2022)
+        return false;
+    if (year == 2009 && month == 1 && day == 1)
+        return false;
+    if (year != 2012 && year != 2016 && year != 2020 && month == 2 && day == 29)
+        return false;
+    return true;
+}
+bool    parseMonth(int month, int day)
+{
+    if (month < 1 || month > 12)
+        return false;
+    
+    if (month == 2 && (day == 30 || day == 31))
+        return false;
+    
+    int monthes[] = {1, 3, 5, 7, 8, 10, 12};
+    int *p = std::find(monthes, monthes + 7, month);
+    if (p != monthes + 7 && day == 31)
+        return false;
+    
+    return true;
+}
+bool    parseDay(int day)
+{
+    if (day < 1 || day > 31)
+        return false;
+    return true;
+}
+
+std::string    parseDate(std::string &date)
+{
+    if (date == "" || isEmpty(date))
+        throw MissingDateOrValueException();
+    if (date.size() != 11)
+        throw InvalidDateException();
+    
+    if (!std::isdigit(date[0])
+        || !std::isdigit(date[1])
+        || !std::isdigit(date[2])
+        || !std::isdigit(date[3])
+        || date[4] != '-'
+        || !std::isdigit(date[5])
+        || !std::isdigit(date[6])
+        || date[7] != '-'
+        || !std::isdigit(date[8])
+        || !std::isdigit(date[9])
+        || date[10] != ' ')
+        throw InvalidDateException();
+           
+    int year = strtol(date.substr(0, 4).c_str(), NULL, 10);
+    int month = strtol(date.substr(5, 2).c_str(), NULL, 10);
+    int day = strtol(date.substr(8, 2).c_str(), NULL, 10);
+    if (!parseDay(day) || !parseMonth(month, day) || !parseYear(year, month, day))
     {
-        int n = stoi(value.substr(1));
-        map[date] = n;
+        throw InvalidDateException();
     }
-    catch (std:: exception &err) 
+    return (date.substr(0, 10));
+}
+
+float    parseValue(std::string &value)
+{
+    if (value == "" || isEmpty(value))
+        throw MissingDateOrValueException();
+    if (value[0] != ' ' || value.size() < 2)
+        throw InvalidValueException();
+    
+    int dot = 0;
+    for (std::size_t i = 1; i < value.size() - 1; i++)
     {
-        map["W" + value] = NULL;
+        if (value[i] == '.')
+            dot += 1;   
+        else if (!std::isdigit(value[i]) || dot > 1)
+            throw InvalidValueException();
+    }
+    char    *end;
+    float n = std::strtof(value.substr(1).c_str(), &end);
+    if (*end != '\0')
+        throw InvalidValueException();
+    if (n > static_cast<float>(INT_MAX))
+        throw OverflowException();
+    return n;
+}
+
+void        parseLine(std::string line, map_t &datamap)
+{
+    if (line == "" || isEmpty(line))
+        throw WrongFileException();
+    int i = 0;
+    while (line[i] && line[i] != '|')
+        i++;
+    if (line[i] != '|')
+        std::cerr << "Error : bad input --> " << line << std::endl;
+    else
+    {
+        std::string date = line.substr(0, i);
+        std::string value_str = line.substr(i + 1);
+        date = parseDate(date);
+        float val = parseValue(value_str);
+        std::cout << date << " | " << val << std::endl;
+        (void)datamap;
+        //findInDatabase(date, val, datamap);
     }
 }
 
 
-map_t    &analyseFile(std::string filename)
+void    analyseFile(std::string filename, map_t &datamap)
 {
     std::ifstream    file(filename.c_str());
     if (!file)
         throw CantOpenFileException();
 
     std::string line;
-    map_t       map;
 
-    while (getline(file, line))
+    std::getline(file, line);
+    if (line != "data | value")
     {
-        if (line == "" || isEmpty(line))
-            throw WrongFileException();
-        int i = 0;
-        while (line[i] && line[i] != '|')
-            i++;
-        if (line[i] != '|')
-            map["W" + line] = NULL;
-        else
+        std::cout << line << std::endl;
+        parseLine(line, datamap);
+    }
+        
+    while (std::getline(file, line))
+    {
+        try
         {
-            std::string date = line.substr(0, i);
-            std::string value = line.substr(i + 1);
-            createMapElement(map, date, value);
+            parseLine(line, datamap);
+        }
+        catch(std::exception& err)
+        {
+            std::cerr << err.what() << std::endl;
         }
     }
-    return map;
 }
 
 //------------------------------------------------------------EXCEPTIONS
@@ -112,5 +175,20 @@ const char* WrongFileException::what() const throw()
 }
 const char* InvalidDateException::what() const throw()
 {
-    return "Error : Invalid Date found ni file";
+    return "Error : Invalid date";
+}
+
+const char* InvalidValueException::what() const throw()
+{
+    return "Error : Invalid value";
+}
+
+const char* OverflowException::what() const throw()
+{
+    return "Error : value is too big";
+}
+
+const char* MissingDateOrValueException::what() const throw()
+{
+    return "Error : Missing Element";
 }
