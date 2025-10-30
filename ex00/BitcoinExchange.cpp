@@ -6,7 +6,7 @@
 /*   By: tobourge <tobourge@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 13:16:04 by tobourge          #+#    #+#             */
-/*   Updated: 2025/10/29 19:25:24 by tobourge         ###   ########.fr       */
+/*   Updated: 2025/10/30 11:19:23 by tobourge         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,22 @@ bool    isEmpty(std::string line)
     return true;
 }
 
+float    convertValue(float val, map_t::iterator it)
+{
+    return (val * it->second);
+}
+
+void    findInDatabase(std::string date, float val, map_t datamap)
+{
+    for (map_t::iterator it = datamap.begin(); it->first <= date; it++)
+    {
+        if (it->first == date)
+            std::cout << date << " => " << val << " = " << val * it->second << std::endl;
+        else if (it->first > date)
+            std::cout << date << " => " << val << " = " << val * (it--)->second << std::endl;
+    }
+}
+
 bool    parseYear(int year, int month, int day)
 {
     if (year < 2009 || year > 2022)
@@ -35,6 +51,7 @@ bool    parseYear(int year, int month, int day)
         return false;
     if (year != 2012 && year != 2016 && year != 2020 && month == 2 && day == 29)
         return false;
+    
     return true;
 }
 bool    parseMonth(int month, int day)
@@ -47,7 +64,7 @@ bool    parseMonth(int month, int day)
     
     int monthes[] = {1, 3, 5, 7, 8, 10, 12};
     int *p = std::find(monthes, monthes + 7, month);
-    if (p != monthes + 7 && day == 31)
+    if (p == monthes + 7 && day == 31)
         return false;
     
     return true;
@@ -56,6 +73,7 @@ bool    parseDay(int day)
 {
     if (day < 1 || day > 31)
         return false;
+
     return true;
 }
 
@@ -64,7 +82,9 @@ std::string    parseDate(std::string &date)
     if (date == "" || isEmpty(date))
         throw MissingDateOrValueException();
     if (date.size() != 11)
+    {
         throw InvalidDateException();
+    }
     
     if (!std::isdigit(date[0])
         || !std::isdigit(date[1])
@@ -77,7 +97,9 @@ std::string    parseDate(std::string &date)
         || !std::isdigit(date[8])
         || !std::isdigit(date[9])
         || date[10] != ' ')
+    {
         throw InvalidDateException();
+    }
            
     int year = strtol(date.substr(0, 4).c_str(), NULL, 10);
     int month = strtol(date.substr(5, 2).c_str(), NULL, 10);
@@ -121,17 +143,16 @@ void        parseLine(std::string line, map_t &datamap)
     while (line[i] && line[i] != '|')
         i++;
     if (line[i] != '|')
-        std::cerr << "Error : bad input --> " << line << std::endl;
-    else
     {
-        std::string date = line.substr(0, i);
-        std::string value_str = line.substr(i + 1);
-        date = parseDate(date);
-        float val = parseValue(value_str);
-        std::cout << date << " | " << val << std::endl;
-        (void)datamap;
-        //findInDatabase(date, val, datamap);
+        std::cerr << "Error : bad input --> " << line << std::endl;
+        return ;
     }
+    
+    std::string date = line.substr(0, i);
+    std::string value_str = line.substr(i + 1);
+    date = parseDate(date);
+    float val = parseValue(value_str);
+    findInDatabase(date, val, datamap);
 }
 
 
@@ -145,10 +166,7 @@ void    analyseFile(std::string filename, map_t &datamap)
 
     std::getline(file, line);
     if (line != "data | value")
-    {
-        std::cout << line << std::endl;
         parseLine(line, datamap);
-    }
         
     while (std::getline(file, line))
     {
