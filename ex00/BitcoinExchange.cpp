@@ -6,13 +6,13 @@
 /*   By: tobourge <tobourge@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 13:16:04 by tobourge          #+#    #+#             */
-/*   Updated: 2025/10/30 11:19:23 by tobourge         ###   ########.fr       */
+/*   Updated: 2025/10/30 11:23:51 by tobourge         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "BitcoinExchange.hpp"
 
-typedef std::map<std::string, int> map_t;
+typedef std::map<std::string, float> map_t;
 
 
 bool    isEmpty(std::string line)
