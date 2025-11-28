@@ -6,7 +6,7 @@
 /*   By: tobourge <tobourge@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 14:31:04 by tobourge          #+#    #+#             */
-/*   Updated: 2025/11/21 19:01:59 by tobourge         ###   ########.fr       */
+/*   Updated: 2025/11/26 09:44:14 by tobourge         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,5 +70,6 @@ int main(int argc, char **argv)
         std::cout << err.what() << std::endl;
     }
     
-    FordJohnsonAlgo(tab);
+    FordJohnsonAlgo(tab, 1);
+    
 }

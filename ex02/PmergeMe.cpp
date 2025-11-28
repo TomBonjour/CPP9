@@ -6,11 +6,13 @@
 /*   By: tobourge <tobourge@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 14:31:11 by tobourge          #+#    #+#             */
-/*   Updated: 2025/11/21 19:14:22 by tobourge         ###   ########.fr       */
+/*   Updated: 2025/11/28 21:55:13 by tobourge         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "PmergeMe.hpp"
+#include <algorithm>
+#include <cmath>
 
 
 void    printTab(std::vector<int> tab)
@@ -21,40 +23,161 @@ void    printTab(std::vector<int> tab)
     }
 }
 
-std::vector<int>    buildMainTab(std::vector<int> tab)
+void    mergeTab(std::vector<int> & tab, int n)
 {
-    if (tab.size() <= 1)
-        return tab;
-
-    std::vector<int>    big;
-    int                 a;
-    int                 b;
-
-    for (std::vector<int>::iterator it = tab.begin(); it != tab.end(); it++)
+    for (std::vector<int>::iterator it1 = tab.begin() + (n - 1); it1 < tab.end(); it1 += n)
     {
-        a = *it;
-        it++;
-        if (it != tab.end())
-        {    
-            b = *it;
-            big.push_back(a > b ? a : b);
+        std::vector<int>::iterator it2 = it1 + n;
+        if (it2 >= tab.end())
+            break ;
+        if (*it1 > *it2)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                std::swap(*(it1 - i), *(it2 - i));
+            }
         }
-        else
-            break;
+        it1 += n;
     }
-
-    std::vector<int>    main_tab = buildMainTab(big);
-
-    return main_tab;
 }
 
-void    FordJohnsonAlgo(std::vector<int> tab)
-{
-    std::vector<int> main_tab = buildMainTab(tab);
 
-    printTab(tab);
+/*TODO : j'aai reussi la premier recursive ! lors de la construction des tableaux main et side
+au debut de la deuxieme récursive, j'ai les bons chiffres mais ils ne sont pas dans l'ordre,
+comme si le précédent tri n'avait pas été pris en compte.
+ */
+
+void    insertTab(std::vector<int> & tab, int n)
+{
+    std::vector<int>    toInsert;
+    int                 nb_elem;
+    int                 nb_side;
+    int                 to_last_elem = 0;
+    int                 _jacob = 0;
+    int                 jacob = 1;
+    int                 pos = 2;
+
+    
+    
+    if (n != 1)
+        n /= 2;
+
+    for (std::vector<int>::iterator it1 = tab.begin(); it1 < tab.end(); it1 += n)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            toInsert.push_back(*it1);
+            
+            it1 = tab.erase(it1);
+        }
+        nb_side = toInsert.size() / n;
+    }
+    
+    std::cout << "DEBUT REC n = " << n << std::endl;
+    std::cout << "[ToInsert] :";
+    printTab(toInsert);
     std::cout << std::endl;
-    printTab(main_tab);
+    std::cout << "[Main] : ";
+    printTab(tab);
+    std::cout << std::endl << std::endl;
+    
+    for (unsigned long i = 0; i < toInsert.size() / n; i++)
+    {
+        std::cout << "Round " << i + 1 << "| Jacob " << jacob << std::endl << std::endl;
+        if (nb_side <= jacob)
+            to_last_elem = jacob - nb_side;
+        if (jacob == 1)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                tab.insert(tab.begin(), *(toInsert.begin() + (n - 1) - i));
+            }
+
+            std::cout << "REC n = " << n << " | INSERT ELEM 1" << std::endl;
+            std::cout << "[Main] : ";
+            printTab(tab);
+            std::cout << std::endl << std::endl;
+            std::cout << "[ToInsert] :";
+            printTab(toInsert);
+            std::cout << std::endl;
+        }
+        else
+        {
+            for (std::vector<int>::iterator it_side = toInsert.begin() + (jacob - to_last_elem) * n - 1
+                ; it_side >= toInsert.begin() + (jacob - _jacob) * n - 1; )
+            {
+                std::cout << "INSERT " << *it_side << std::endl;
+                nb_elem = _jacob + jacob - 1;
+                
+                std::vector<int>::iterator  it_main;
+                int pos_to_cmp = (nb_elem + 1) / 2;
+                
+                while (true)
+                {
+                    it_main = tab.begin() + (pos_to_cmp * n) - 1;
+                    
+                    std::cout << "Compare with" << *it_main << std::endl;
+                    
+                    if (*it_side > *it_main)
+                    {
+                        if (nb_elem == 1)
+                        {
+                            it_main++;
+                            for (int i = 0; i < n; i++)
+                            {
+                                tab.insert(it_main, *it_side--);
+                            }
+                            break;
+                        }
+                        pos_to_cmp += pos_to_cmp / 2;
+                    }
+                    else if (*it_side <= *it_main)
+                    {
+                        if (nb_elem == 1)
+                        {
+                            it_main -= n - 1;
+                            for (int i = 0; i < n; i++)
+                            {
+                                tab.insert(it_main, *it_side--);
+                            }
+                            break;
+                        }
+                        pos_to_cmp -= pos_to_cmp / 2;
+                    }
+                        
+                    nb_elem /= 2;
+                    
+                }
+                std::cout << "[Main] : ";
+                printTab(tab);
+                std::cout << std::endl;
+                std::cout << "[ToInsert] : ";
+                printTab(toInsert);
+                std::cout << std::endl;
+            }
+        }
+
+        if (nb_side <= jacob)
+            break;
+        
+        _jacob = jacob;
+        jacob = std::pow(2, pos) - jacob;
+        pos++;
+    }
+    
+    //DEBUG
+    
+}
+
+// 10 8 7 9 6 3 4 5 2 1 11
+    
+void    FordJohnsonAlgo(std::vector<int> tab, unsigned long n)
+{
+    if (tab.size() <= 1 || n > (tab.size() / 2))
+        return ;
+    mergeTab(tab, n);
+    FordJohnsonAlgo(tab, n * 2);
+    insertTab(tab, n);
 }
 
 
