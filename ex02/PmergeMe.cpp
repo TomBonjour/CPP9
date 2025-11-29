@@ -6,7 +6,7 @@
 /*   By: tobourge <tobourge@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 14:31:11 by tobourge          #+#    #+#             */
-/*   Updated: 2025/11/28 21:55:13 by tobourge         ###   ########.fr       */
+/*   Updated: 2025/11/29 16:29:14 by tobourge         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,21 +47,10 @@ au debut de la deuxieme récursive, j'ai les bons chiffres mais ils ne sont pas 
 comme si le précédent tri n'avait pas été pris en compte.
  */
 
-void    insertTab(std::vector<int> & tab, int n)
+std::vector<int>    createSideChain(std::vector<int> & tab, int n)
 {
     std::vector<int>    toInsert;
-    int                 nb_elem;
-    int                 nb_side;
-    int                 to_last_elem = 0;
-    int                 _jacob = 0;
-    int                 jacob = 1;
-    int                 pos = 2;
-
     
-    
-    if (n != 1)
-        n /= 2;
-
     for (std::vector<int>::iterator it1 = tab.begin(); it1 < tab.end(); it1 += n)
     {
         for (int i = 0; i < n; i++)
@@ -70,10 +59,31 @@ void    insertTab(std::vector<int> & tab, int n)
             
             it1 = tab.erase(it1);
         }
-        nb_side = toInsert.size() / n;
     }
+    return toInsert;
+}
+ 
+void    insertTab(std::vector<int> tab, int n)
+{
+    if (n != 1)
+    n /= 2;
     
     std::cout << "DEBUT REC n = " << n << std::endl;
+    std::cout << "[Main] : ";
+    printTab(tab);
+    std::cout << std::endl << std::endl;
+    
+    std::vector<int>    toInsert = createSideChain(tab, n);
+    int                 nb_side = toInsert.size() / n;
+    int                 nb_elem;
+    
+    int                 _jacob = 0;
+    int                 jacob = 1;
+    int                 pos = 2;
+    int                 to_last_elem = 0;
+    
+        
+
     std::cout << "[ToInsert] :";
     printTab(toInsert);
     std::cout << std::endl;
@@ -84,6 +94,7 @@ void    insertTab(std::vector<int> & tab, int n)
     for (unsigned long i = 0; i < toInsert.size() / n; i++)
     {
         std::cout << "Round " << i + 1 << "| Jacob " << jacob << std::endl << std::endl;
+        
         if (nb_side <= jacob)
             to_last_elem = jacob - nb_side;
         if (jacob == 1)
@@ -99,7 +110,7 @@ void    insertTab(std::vector<int> & tab, int n)
             std::cout << std::endl << std::endl;
             std::cout << "[ToInsert] :";
             printTab(toInsert);
-            std::cout << std::endl;
+            std::cout << std::endl << std::endl;
         }
         else
         {
@@ -107,38 +118,38 @@ void    insertTab(std::vector<int> & tab, int n)
                 ; it_side >= toInsert.begin() + (jacob - _jacob) * n - 1; )
             {
                 std::cout << "INSERT " << *it_side << std::endl;
+                
                 nb_elem = _jacob + jacob - 1;
                 
-                std::vector<int>::iterator  it_main;
+                std::vector<int>::iterator  it_tab;
                 int pos_to_cmp = (nb_elem + 1) / 2;
-                
                 while (true)
                 {
-                    it_main = tab.begin() + (pos_to_cmp * n) - 1;
+                    it_tab = tab.begin() + (pos_to_cmp * n) - 1;
                     
-                    std::cout << "Compare with" << *it_main << std::endl;
+                    std::cout << "Compare with" << *it_tab << std::endl;
                     
-                    if (*it_side > *it_main)
+                    if (*it_side > *it_tab)
                     {
                         if (nb_elem == 1)
                         {
-                            it_main++;
+                            it_tab++;
                             for (int i = 0; i < n; i++)
                             {
-                                tab.insert(it_main, *it_side--);
+                                tab.insert(it_tab, *it_side--);
                             }
                             break;
                         }
                         pos_to_cmp += pos_to_cmp / 2;
                     }
-                    else if (*it_side <= *it_main)
+                    else if (*it_side <= *it_tab)
                     {
                         if (nb_elem == 1)
                         {
-                            it_main -= n - 1;
+                            it_tab -= n - 1;
                             for (int i = 0; i < n; i++)
                             {
-                                tab.insert(it_main, *it_side--);
+                                tab.insert(it_tab, *it_side--);
                             }
                             break;
                         }
@@ -153,7 +164,7 @@ void    insertTab(std::vector<int> & tab, int n)
                 std::cout << std::endl;
                 std::cout << "[ToInsert] : ";
                 printTab(toInsert);
-                std::cout << std::endl;
+                std::cout << std::endl << std::endl;
             }
         }
 
@@ -164,14 +175,14 @@ void    insertTab(std::vector<int> & tab, int n)
         jacob = std::pow(2, pos) - jacob;
         pos++;
     }
-    
-    //DEBUG
-    
+    if (n == 1)
+        return;
+    insertTab(tab, n);
 }
 
 // 10 8 7 9 6 3 4 5 2 1 11
     
-void    FordJohnsonAlgo(std::vector<int> tab, unsigned long n)
+void   FordJohnsonAlgo(std::vector<int> tab, unsigned long n)
 {
     if (tab.size() <= 1 || n > (tab.size() / 2))
         return ;
