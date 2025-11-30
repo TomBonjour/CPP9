@@ -6,7 +6,7 @@
 /*   By: tobourge <tobourge@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 14:31:51 by tobourge          #+#    #+#             */
-/*   Updated: 2025/11/29 16:29:14 by tobourge         ###   ########.fr       */
+/*   Updated: 2025/11/30 13:11:02 by tobourge         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #include <vector>
 #include <exception>
 
-void    FordJohnsonAlgo(std::vector<int> tab, unsigned long n);
+void    FordJohnsonAlgo(std::vector<int> & tab, unsigned long n);
 
 
  class NotNumberException : public std::exception

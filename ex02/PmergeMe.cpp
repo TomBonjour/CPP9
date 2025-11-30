@@ -6,7 +6,7 @@
 /*   By: tobourge <tobourge@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 14:31:11 by tobourge          #+#    #+#             */
-/*   Updated: 2025/11/29 16:29:14 by tobourge         ###   ########.fr       */
+/*   Updated: 2025/11/30 13:58:15 by tobourge         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ std::vector<int>    createSideChain(std::vector<int> & tab, int n)
     return toInsert;
 }
  
-void    insertTab(std::vector<int> tab, int n)
+void    insertTab(std::vector<int> & tab, int n)
 {
     if (n != 1)
     n /= 2;
@@ -93,10 +93,12 @@ void    insertTab(std::vector<int> tab, int n)
     
     for (unsigned long i = 0; i < toInsert.size() / n; i++)
     {
-        std::cout << "Round " << i + 1 << "| Jacob " << jacob << std::endl << std::endl;
+        std::cout << "Round " << i + 1 << "| Jacob " << jacob << "| Side Elem " << nb_side << std::endl << std::endl;
         
         if (nb_side <= jacob)
+        {
             to_last_elem = jacob - nb_side;
+        }
         if (jacob == 1)
         {
             for (int i = 0; i < n; i++)
@@ -115,11 +117,12 @@ void    insertTab(std::vector<int> tab, int n)
         else
         {
             for (std::vector<int>::iterator it_side = toInsert.begin() + (jacob - to_last_elem) * n - 1
-                ; it_side >= toInsert.begin() + (jacob - _jacob) * n - 1; )
+                ; it_side >= toInsert.begin() + (jacob * n - 1) - ((jacob - _jacob) * n - 1); )
             {
-                std::cout << "INSERT " << *it_side << std::endl;
                 
                 nb_elem = _jacob + jacob - 1;
+                
+                std::cout << "INSERT " << *it_side << "| nb_elem to cmp : " << nb_elem << std::endl;
                 
                 std::vector<int>::iterator  it_tab;
                 int pos_to_cmp = (nb_elem + 1) / 2;
@@ -127,7 +130,7 @@ void    insertTab(std::vector<int> tab, int n)
                 {
                     it_tab = tab.begin() + (pos_to_cmp * n) - 1;
                     
-                    std::cout << "Compare with" << *it_tab << std::endl;
+                    std::cout << "Compare with" << *it_tab << "| nb_elem to cmp : " << nb_elem << std::endl;
                     
                     if (*it_side > *it_tab)
                     {
@@ -140,7 +143,8 @@ void    insertTab(std::vector<int> tab, int n)
                             }
                             break;
                         }
-                        pos_to_cmp += pos_to_cmp / 2;
+                        nb_elem /= 2;
+                        pos_to_cmp += nb_elem;
                     }
                     else if (*it_side <= *it_tab)
                     {
@@ -153,11 +157,9 @@ void    insertTab(std::vector<int> tab, int n)
                             }
                             break;
                         }
-                        pos_to_cmp -= pos_to_cmp / 2;
+                        nb_elem /= 2;
+                        pos_to_cmp -= nb_elem;
                     }
-                        
-                    nb_elem /= 2;
-                    
                 }
                 std::cout << "[Main] : ";
                 printTab(tab);
@@ -177,12 +179,11 @@ void    insertTab(std::vector<int> tab, int n)
     }
     if (n == 1)
         return;
-    insertTab(tab, n);
 }
 
 // 10 8 7 9 6 3 4 5 2 1 11
     
-void   FordJohnsonAlgo(std::vector<int> tab, unsigned long n)
+void   FordJohnsonAlgo(std::vector<int> & tab, unsigned long n)
 {
     if (tab.size() <= 1 || n > (tab.size() / 2))
         return ;
