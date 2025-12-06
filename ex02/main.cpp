@@ -6,7 +6,7 @@
 /*   By: tobourge <tobourge@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 14:31:04 by tobourge          #+#    #+#             */
-/*   Updated: 2025/11/29 16:29:13 by tobourge         ###   ########.fr       */
+/*   Updated: 2025/12/06 14:30:19 by tobourge         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,20 @@ std::vector<int>    parseArgs(char **argv)
     return (tab);
 }
 
+void    validSort(std::vector<int> tab)
+{
+    for (size_t i = 0; i < tab.size() - 1; i++)
+    {
+        if (tab[i] > tab [i + 1])
+        {
+            std::cout << "\e[31m[KO]\e[0m" << std::endl;
+            return ;
+        }
+    }
+    std::cout << "\e[32m[OK]\e[0m" << std::endl;
+    
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 2)
@@ -71,5 +85,6 @@ int main(int argc, char **argv)
     }
     
     FordJohnsonAlgo(tab, 1);
-    
+    printTab(tab);
+    validSort(tab);
 }
