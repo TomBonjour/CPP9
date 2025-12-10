@@ -6,7 +6,7 @@
 /*   By: tobourge <tobourge@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/21 14:31:51 by tobourge          #+#    #+#             */
-/*   Updated: 2025/12/06 14:30:17 by tobourge         ###   ########.fr       */
+/*   Updated: 2025/12/10 12:06:00 by tobourge         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,11 @@
 #include <climits>
 #include <cstdlib>
 #include <vector>
+#include <deque>
 #include <exception>
 
-void    FordJohnsonAlgo(std::vector<int> & tab, unsigned long n);
+void    FordJohnsonVector(std::vector<int> & tab, unsigned long n);
+void    FordJohnsonDeque(std::deque<int> & tab, unsigned long n);
 void    printTab(std::vector<int> tab);
 
 
